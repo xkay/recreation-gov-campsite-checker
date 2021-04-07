@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import sys
+import time
 from datetime import datetime, timedelta
 from dateutil import rrule
 from itertools import count, groupby
@@ -231,6 +232,7 @@ def output_human_output(parks):
         )
 
     if availabilities:
+        print('\a')
         print(
             "There are campsites available from {} to {}!!!".format(
                 args.start_date.strftime(INPUT_DATE_FORMAT),
@@ -334,9 +336,18 @@ if __name__ == "__main__":
 
     parks = args.parks or [p.strip() for p in sys.stdin]
 
+    starttime = time.time()
+   
+
+
     try:
-        code = 0 if main(parks, json_output=args.json_output) else 1
-        sys.exit(code)
+        while True:
+            main(parks, json_output=args.json_output)
+            print("waiting 60 seconds...")
+            time.sleep(60.0 - ((time.time() - starttime) % 60.0))
+
+        # code = 0 if  else 1
+        # sys.exit(code)
     except Exception:
         print("Something went wrong")
         LOG.exception("Something went wrong")
