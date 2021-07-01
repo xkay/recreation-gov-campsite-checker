@@ -5,6 +5,7 @@ import json
 import logging
 import sys
 import time
+import os
 from datetime import datetime, timedelta
 from dateutil import rrule
 from itertools import count, groupby
@@ -12,6 +13,7 @@ from itertools import count, groupby
 import requests
 from fake_useragent import UserAgent
 
+# python camping.py --start-date 2021-07-30 --end-date 2021-08-01 --stdin < parks.txt
 
 LOG = logging.getLogger(__name__)
 formatter = logging.Formatter("%(asctime)s - %(process)s - %(levelname)s - %(message)s")
@@ -215,6 +217,12 @@ def check_park(park_id, start_date, end_date, campsite_type, nights=None):
 def output_human_output(parks):
     out = []
     availabilities = False
+
+    out.append(
+        "Looking from date {} to {}".format(
+            args.start_date, args.end_date
+        )
+    )
     for park_id in parks:
         current, maximum, _, name_of_park = check_park(
             park_id, args.start_date, args.end_date, args.campsite_type, nights=args.nights
@@ -222,12 +230,25 @@ def output_human_output(parks):
         if current:
             emoji = SUCCESS_EMOJI
             availabilities = True
+            subtitle = "Campsites available at {}!!!!!".format(
+                name_of_park
+            )
+            notify(
+                title = 'Campsites available!',
+                subtitle = subtitle,
+                message  = subtitle
+            )
         else:
             emoji = FAILURE_EMOJI
 
         out.append(
             "{} {} ({}): {} site(s) available out of {} site(s)".format(
                 emoji, name_of_park, park_id, current, maximum
+            )
+        )
+        out.append(
+            "website: https://www.recreation.gov/camping/campgrounds/{}\n".format(
+                park_id
             )
         )
 
@@ -283,6 +304,11 @@ def positive_int(i):
         raise argparse.ArgumentTypeError(msg)
     return i
 
+def notify(title, subtitle, message):
+    t = '-title {!r}'.format(title)
+    s = '-subtitle {!r}'.format(subtitle)
+    m = '-message {!r}'.format(message)
+    os.system('terminal-notifier {}'.format(' '.join([m, t, s])))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -335,15 +361,12 @@ if __name__ == "__main__":
         LOG.setLevel(logging.DEBUG)
 
     parks = args.parks or [p.strip() for p in sys.stdin]
-
     starttime = time.time()
-   
-
 
     try:
         while True:
             main(parks, json_output=args.json_output)
-            print("waiting 60 seconds...")
+            print("waiting 60 seconds...\n")
             time.sleep(60.0 - ((time.time() - starttime) % 60.0))
 
         # code = 0 if  else 1
