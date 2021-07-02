@@ -363,15 +363,16 @@ if __name__ == "__main__":
     parks = args.parks or [p.strip() for p in sys.stdin]
     starttime = time.time()
 
-    try:
-        while True:
-            main(parks, json_output=args.json_output)
-            print("waiting 60 seconds...\n")
-            time.sleep(60.0 - ((time.time() - starttime) % 60.0))
+    while True:
+        try:
+            while True:
+                main(parks, json_output=args.json_output)
+                print("waiting 60 seconds...\n")
+                time.sleep(60.0 - ((time.time() - starttime) % 60.0))
 
-        # code = 0 if  else 1
-        # sys.exit(code)
-    except Exception:
-        print("Something went wrong")
-        LOG.exception("Something went wrong")
-        raise
+            # code = 0 if  else 1
+            # sys.exit(code)
+        except Exception:
+            print("Something went wrong")
+            LOG.exception("Something went wrong")
+            pass
